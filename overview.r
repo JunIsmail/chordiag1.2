@@ -3,30 +3,24 @@ library(shiny)
 library(readxl)
 library(chorddiag)
 library(dplyr)
-library(streamgraph)
+
 library(bubbles)
-library(formattable)
-library(knitr)
-library(kableExtra)
+library(markdown)
 
 # global constant
-color1 <- c("#6600FF","#0066FF","#CCFF00","#00CCFF","#FF00CC","#66FF00","#00FF66","#00FF00","#FFCC00",
-            "#CC00FF","#0000FF","#FF0000","#FF6600","#00FFCC","#FF0066")
-color2 <- c("#CC00FF","#0000FF","#FF0000","#FF6600","#00FFCC","#FF0066",
-            "#6600FF","#0066FF","#CCFF00","#00CCFF","#FF00CC","#66FF00","#00FF66","#00FF00","#FFCC00")
+color1 <- c('#f0a8a8', '#f0baa8','#f0cca8','#f0dea8', '#f0f0a8', '#def0a8',
+            '#ccf0a8', '#baf0a8', '#a8f0a8', '#a8f0ba', '#a8f0cc', '#a8f0de', '#a8f0ec', '#a8f0f0', '#a8def0')
+color2 <- c('#7ce9ce', '#7ce9e3', '#7ce9e9', '#7ccee9', '#7cb3e9', '#7c97e9',
+            '#7c7ce9', '#977ce9', '#b37ce9', '#ce7ce9', '#e97ce9', '#e97cce', '#e97cb3', '#e97c97', '#e97c7c')
 university <- c("UM","USM","UKM","UPM","UTM")
 
-header <- dashboardHeader(title = "SAMPLE")
+header <- dashboardHeader(title = "Top 5 University Malaysia")
 
 sidebar <- dashboardSidebar(
   sidebarMenu(
+    sidebarSearchForm(textId = "searchText", buttonId = "searchButton",
+                      label = "Search..."),
     menuItem("OVERVIEW", tabName = "OVERVIEW", icon = icon("info")),
-    selectInput('input_table', "Select Data to Display",
-                choices = university,
-                multiple = FALSE,
-                selected = 'UM',
-                width = '98%'),
-    
     menuItem("STUDENT", tabName = "STUDENT", icon = icon("bar-chart-o"), badgeLabel = "Chord Diagram", badgeColor = "green"),
     menuItem("STAFF", tabName = "STAFF", icon = icon("bar-chart-o"), badgeLabel = "Chord Diagram", badgeColor = "green"),
     menuItem("OVERALL", tabName = "OVERALL", icon = icon("bar-chart-o"), badgeLabel = "Bubble Diagram", badgeColor = "fuchsia"),
@@ -35,13 +29,13 @@ sidebar <- dashboardSidebar(
 )
 
 body <- dashboardBody(
-  
+  # includeCSS("custom.css"),
   tabItems(
     tabItem("OVERVIEW",
       fluidRow(
         valueBox(15, "Public Universities", icon = icon("education", lib = "glyphicon")),
         valueBox(100 * 2, "Current Students", icon = icon("stats", lib = "glyphicon")),
-        valueBox(1500,"Number Of Staff", icon = icon("user", lib = "glyphicon"))
+        valueBox(1500,"Number Of Staff", icon = icon("user", lib = "glyphicon"), color = "fuchsia")
       ),
       
       fluidRow(
@@ -54,57 +48,102 @@ body <- dashboardBody(
       
       fluidRow(
         box(
-          title = "Data for Application", height = 800, width = 12, solidHeader = TRUE,
-          status = "primary",
-          tableOutput("table")
+          title = "Graph 2", height = 500, width = 12, solidHeader = TRUE,
+          status = "primary"
         )
       )
     ),
     
     tabItem("STUDENT",
-      fixedRow(
-        column(width = 12, div(class="col-md-6" ,h2("Student by Gender, Nationality, Level of Study and Disabilities")))
+      #fixedRow(
+      #  column(width = 12, div(class="col-md-6" ,h2("Student by Gender, Nationality, Level of Study and Disabilities")))
+      #),
+      
+      box(
+        h4(("Staff by Gender, Qualification and Position")),
+        width = 12,
+        background = 'teal'
       ),
       
+      # fluidRow(
+        # infoBox("UM", 1, icon = icon("education", lib = "glyphicon"), color = "blue", fill = TRUE),
+        # infoBox("UKM", 2, icon = icon("education", lib = "glyphicon"), color = "yellow", fill = TRUE),
+        # infoBox("USM", 3, icon = icon("education", lib = "glyphicon"), color = "green", fill = TRUE),
+        # infoBox("UTM", 4, icon = icon("education", lib = "glyphicon"), color = "black", fill = TRUE),
+        # infoBox("UPM", 5, icon = icon("education", lib = "glyphicon"), color = "lime", fill = TRUE),
+        # infoBox("TOTAL", 6, icon = icon("education", lib = "glyphicon"), color = "red", fill = TRUE)
+      # ),
+      
       fluidPage(
-        br(),
-        br(),
         
-        selectInput('input_data', "Choose one variable to view the corresponding Chord Diagram",
+        box(
+          selectInput('input_data', "Choose one variable to view the corresponding Chord Diagram",
                     choices = c("Gender","Nationality","Level of Study", "Disabilities"),
-                    multiple = FALSE,
                     selected = 'Gender',
                     width = '98%'),
-        fixedRow(
-          tabPanel("Student by States", "Mouseover to focus on each chord to see the information.
-                    The thickness of links between chords encodes the number of students:thicker links represent 
-                    more students.")
-          # column(width = 12, div(class="col-md-6", h3("Mouseover to focus on each chord to see the information.\n
-                                                      # The thickness of links between chords encodes the number of students:thicker links represent 
-                                                      # more students.")))
+          background = 'teal',
+          width = 12
         ),
-        chorddiagOutput("distPlot", height = 600)
+        
+        box(
+          "Mouseover to focus on each chord and see the information.",
+          width = 12
+        ),
+        
+        box(
+          chorddiagOutput("distPlot", height = 600),
+          width = 12
+        )
       )
     ),
     
     tabItem("STAFF",
-      fixedRow(
-        column(width = 12, div(class="col-md-6" ,h2("Staff by Gender, Qualification and Position")))
+      #fixedRow(
+      #  column(width = 12, div(class="col-md-6" ,h2("Staff by Gender, Qualification and Position")))
+      #),
+      
+      box(
+        h4(("Staff by Gender, Qualification and Position")),
+        width = 12,
+        background = 'navy'
       ),
       
+      # fluidRow(
+        # infoBox("UM", 1, icon = icon("education", lib = "glyphicon"), color = "blue"),
+        # infoBox("UKM", 2, icon = icon("education", lib = "glyphicon"), color = "yellow"),
+        # infoBox("USM", 3, icon = icon("education", lib = "glyphicon"), color = "green"),
+        # infoBox("UTM", 4, icon = icon("education", lib = "glyphicon"), color = "black"),
+        # infoBox("UPM", 5, icon = icon("education", lib = "glyphicon"), color = "lime"),
+        # infoBox("TOTAL", 6, icon = icon("education", lib = "glyphicon"), color = "red")
+      # ),
+      
       fluidPage(
-        br(),
-        br(),
         
-        selectInput('input_data2', "Choose one variable to view the corresponding Chord Diagram",
+        box(
+          selectInput('input_data2', "Choose one variable to view the corresponding Chord Diagram",
                     choices = c("Gender","Education Qualification", "Academic Position"),
                     selected = 'Gender',
                     width = '98%'),
-        fixedRow(column(width = 12, 
-                        div(class="col-md-6", h3("Mouseover to focus on each chord to see the information.\n
-                                                  The thickness of links between chords encodes the number of staff:
-                                                  thicker links represent more staff.")))),
-        chorddiagOutput("staffPlot", height = 600, width = '98%')
+          background = 'navy',
+          width = 12
+        ),
+       
+        box(
+          "Mouseover to focus on each chord and see the information.",
+          width = 12
+        ),
+         
+        box(
+          chorddiagOutput(
+          "staffPlot", height = 600, width = '98%'),
+          width = 12
+        )
+        
+        #fixedRow(column(width = 12, 
+        #                div(class="col-md-6", h3("Mouseover to focus on each chord to see the information.\n
+        #                                          The thickness of links between chords encodes the number of staff:
+        #                                          thicker links represent more staff.")))),
+        
       )
     ),
     
@@ -113,13 +152,13 @@ body <- dashboardBody(
         tabBox(
           title = "Bubble Chart",
           id = "tabset1", height = "1000px", width = 12,
-          tabPanel("Student by States", "Tab 1 content",
+          tabPanel("Student by States",
                    sliderInput("animation1", "Slide to change year:", width = '98%',
                               min = 2014, max = 2017,
                               value = 2014, step = 1,
                               animate = animationOptions(interval = 1500, loop = TRUE)),
                    bubblesOutput("overallPlot1", height = 600, width = '98%')),
-          tabPanel("Student by Fields", "Tab 2 Content",
+          tabPanel("Student by Fields",
                    sliderInput("animation2", "Slide to change year:", width = '98%',
                                min = 2014, max = 2017,
                                value = 2014, step = 1,
@@ -130,7 +169,7 @@ body <- dashboardBody(
       )
     ),
     
-    tabItem("ABOUT", box(width = 12, "ABOUT"))
+    tabItem("ABOUT", box(width = 12, includeMarkdown("www/about.md")))
   )
 )
 
@@ -143,33 +182,6 @@ shinyApp(
               ylim=c(0,25),
               col=c("beige","orange","lightgreen","lightblue","yellow"),
               ylab="Count of items")
-    })
-    
-    output$table <- renderTable({
-      # read from Main_data
-      
-      if (input$input_table == "UM") {
-        Um_Table <- read_excel("Main_Data.xlsx", sheet = "UM")
-        Um_Table
-        # Um_Table %>% 
-          # select(VARIABLES, `2015`,`2016`,`2017`) %>%
-          # mutate(VARIABLES = color_tile("lightblue", "lightgreen")(VARIABLES))
-          # kable("html", escape = FALSE, align = "c", caption = "UM Dataset")
-          # kable_styling(bootstrap_options = c("striped", "condensed", "bordered"), full_width = TRUE)
-        
-      } else if (input$input_table == "USM") {
-        Usm_Table <- read_excel("Main_Data.xlsx", sheet = "USM")
-        Usm_Table
-      } else if (input$input_table == "UKM") {
-        Ukm_Table <- read_excel("Main_Data.xlsx", sheet = "UKM")
-        Ukm_Table
-      } else if (input$input_table == "UPM") {
-        Upm_Table <- read_excel("Main_Data.xlsx", sheet = "UPM")
-        Upm_Table
-      } else {
-        Utm_Table <- read_excel("Main_Data.xlsx", sheet = "UTM")
-        Utm_Table
-      }
     })
     
     output$distPlot <- renderChorddiag({
